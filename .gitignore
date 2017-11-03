@@ -1,1 +1,3 @@
-.gitconfig
+.idea/
+cmake-build-debug/
+a.out
