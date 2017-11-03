@@ -18,7 +18,7 @@ def generate_matrix(dim_x, dim_y, file_name):
 
     for i in range(0, dim_x):
         fhandle.write(str(random.random()))
-        for j in range(0, dim_y):
+        for j in range(0, dim_y -1):
             fhandle.write('\t' + str(random.random()))
         fhandle.write('\n')
 
@@ -27,7 +27,7 @@ def generate_matrix(dim_x, dim_y, file_name):
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description='Generates matrix for the pddp alogorithm ' +
+    parser = argparse.ArgumentParser(description='Generates matrix for the pddp algorithm ' +
                                      'as a text file. Columns are seperated by tabs (\\t) and '+
                                      'rows by newlines (\\n). ' +
                                      'Same seed and size always produces same matrix.')
