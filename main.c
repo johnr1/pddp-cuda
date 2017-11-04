@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "io/matrixio.h"
 #include "cpddp/cpddp.h"
-#include "matrix.h"
 
 int main(int argc, char *argv[])
 {
@@ -18,5 +17,8 @@ int main(int argc, char *argv[])
     Matrix eigenvalue = pddpStep(M);
     printMatrix(eigenvalue);
 
+
+    free(M.matrix);
+    free(eigenvalue.matrix);
     return 0;
 }

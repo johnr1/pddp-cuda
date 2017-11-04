@@ -6,7 +6,7 @@
 
 
 Matrix pddpStep(Matrix M) {
-    double e = 0.00000001;
+    double e = 2.2204e-16;
     Matrix w = calculateAverageVector(M);
     Matrix A = calculateMean(M, w);
     Matrix C = calculateAtA(A);
@@ -14,20 +14,20 @@ Matrix pddpStep(Matrix M) {
 
     Matrix x = ones(C.rows,1);
     Matrix xNext;
-    double xfactorNorm;
+    double varianceNorm;
     do {
         Matrix Cx = matrixMultiply(C, x);
         double norma = norm(Cx);
         xNext = divideMatrixByScalar(Cx, norma);
         free(Cx.matrix);
 
-        Matrix xfactor = matrixSubtract(xNext, x);
-        xfactorNorm = norm(xfactor);
-        free(xfactor.matrix);
+        Matrix variance = matrixSubtract(xNext, x);
+        varianceNorm = norm(variance);
+        free(variance.matrix);
         free(x.matrix);
         x = xNext;
-        printf("%0.10f\n", xfactorNorm);
+        //printf("%0.20f\n", varianceNorm);
 
-    } while(xfactorNorm>e);
+    } while(varianceNorm > e);
     return x;
 }
