@@ -1,22 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "io/matrixio.h"
+#include "cpddp/cpddp.h"
+#include "matrix.h"
 
 int main(int argc, char *argv[])
 {
-    Matrix matrix;
-
     if(argc < 2){
         printf("Usage: exe FILE\n");
-        printf("Error: Filename containing matrix not provided.\n");
+        printf("Error: Filename containing M not provided.\n");
         exit(-1);
     }
 
-    matrix = buildArrayFromFile(argv[1]);
-    printMatrix(matrix);
-    printMatrixToFile(matrix, "matrix_result.txt");
+    Matrix M = buildArrayFromFile(argv[1]);
+    Matrix eigenvalue;
 
+    printMatrix(M);
+
+    eigenvalue = pddpStep(M);
+    printMatrix(eigenvalue);
 
     return 0;
 }
-
