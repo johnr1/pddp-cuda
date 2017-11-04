@@ -13,11 +13,9 @@ int main(int argc, char *argv[])
     }
 
     Matrix M = buildArrayFromFile(argv[1]);
-    Matrix eigenvalue;
-
     printMatrix(M);
 
-    eigenvalue = pddpStep(M);
+    Matrix eigenvalue = pddpStep(M);
     printMatrix(eigenvalue);
 
     return 0;

@@ -50,11 +50,11 @@ Matrix calculateMean(Matrix M, Matrix w) {
 Matrix calculateAtA(Matrix A) {
     Matrix C;
     C.cols = A.cols;
-    C.rows = A.rows;
+    C.rows = A.cols;
 
     C.matrix = malloc(A.cols * A.cols * sizeof(double));
 
-    for (int i = 0; i < A.cols * A.rows; i++) {
+    for (int i = 0; i < A.cols * A.cols; i++) {
         C.matrix[i] = calculateAtAElement(A, i / A.cols, i % A.cols);
     }
 
@@ -64,8 +64,7 @@ Matrix calculateAtA(Matrix A) {
 double calculateAtAElement(Matrix A, int x, int y) {
     double sum = 0;
     for (int i = 0; i < A.cols; i++) {
-        sum += A.matrix[i][] * A.matrix[][];
-        //sum += A.matrix[y * A.cols + i] * A.matrix[i * A.cols + x];
+        sum += A.matrix[i * A.cols + x] * A.matrix[i * A.cols + y];
     }
 
     return sum;
