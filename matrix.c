@@ -63,7 +63,7 @@ Matrix calculateAtA(Matrix A) {
 
 double calculateAtAElement(Matrix A, int x, int y) {
     double sum = 0;
-    for (int i = 0; i < A.cols; i++) {
+    for (int i = 0; i < A.rows; i++) {
         sum += A.matrix[i * A.cols + x] * A.matrix[i * A.cols + y];
     }
 

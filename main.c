@@ -3,6 +3,7 @@
 #include "io/matrixio.h"
 #include "cpddp/cpddp.h"
 
+//TODO: change dimensions from int to llu
 int main(int argc, char *argv[])
 {
     if(argc < 2){
