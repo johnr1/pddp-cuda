@@ -3,9 +3,9 @@
 #include "../include/matrixio.h"
 
 void printMatrix(Matrix A) {
-    printf("Matrix [%dx%d] = \n", A.rows, A.cols);
-    for (int i = 0; i < A.rows; i++) {
-        for (int j = 0; j < A.cols; j++) {
+    printf("Matrix [%llux%llu] = \n", A.rows, A.cols);
+    for (unsigned long long i = 0; i < A.rows; i++) {
+        for (unsigned long long j = 0; j < A.cols; j++) {
             printf("\t%f", A.matrix[i * A.cols + j]);
         }
         printf("\n");
@@ -14,9 +14,9 @@ void printMatrix(Matrix A) {
 
 void printMatrixToFile(Matrix A, char *filename) {
     FILE *fp = fopen(filename, "w");
-    for (int i = 0; i < A.rows; i++) {
+    for (unsigned long long i = 0; i < A.rows; i++) {
         fprintf(fp, "%f", A.matrix[i * A.cols]);
-        for (int j = 1; j < A.cols; j++) {
+        for (unsigned long long j = 1; j < A.cols; j++) {
             fprintf(fp, "\t%.15f", A.matrix[i * A.cols + j]);
         }
         fprintf(fp, "\n");
@@ -26,7 +26,7 @@ void printMatrixToFile(Matrix A, char *filename) {
 Matrix buildArrayFromFile(char *filename) {
     Matrix A;
     FILE *fp = fopen(filename, "r");
-    int x = 1, y = 1;
+    unsigned long long x = 1, y = 1;
     char c;
 
     if (fp == NULL) {
@@ -50,7 +50,7 @@ Matrix buildArrayFromFile(char *filename) {
     rewind(fp);
 
     char buffer[30];
-    int i = 0, buf_i = 0;
+    unsigned long long i = 0, buf_i = 0;
     while ((c = (char) fgetc(fp)) != EOF) {
         if (c == '\t' || c == '\n') {
             buffer[buf_i] = '\0';

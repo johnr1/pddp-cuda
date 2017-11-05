@@ -2,13 +2,13 @@
 #include "../include/matrix.h"
 #include <math.h>
 
-Matrix ones(int N, int M) {
+Matrix ones(unsigned long long N, unsigned long long M) {
     Matrix A;
     A.rows = N;
     A.cols = M;
     A.matrix = malloc(M * N * sizeof(double));
 
-    for (int i = 0; i < N * M; ++i) {
+    for (unsigned long long i = 0; i < N * M; ++i) {
         A.matrix[i] = 1;
     }
 
@@ -21,9 +21,9 @@ Matrix calculateAverageVector(Matrix M) {
     w.rows = M.rows;
     w.matrix = malloc(M.rows * sizeof(double));
 
-    for (int i = 0; i < M.rows; i++) {
+    for (unsigned long long i = 0; i < M.rows; i++) {
         double sum = 0;
-        for (int j = 0; j < M.cols; j++) {
+        for (unsigned long long j = 0; j < M.cols; j++) {
             sum += M.matrix[i * M.cols + j];
         }
         w.matrix[i] = sum / M.cols;
@@ -40,7 +40,7 @@ Matrix calculateMean(Matrix M, Matrix w) {
     A.matrix = malloc(M.cols * M.rows * sizeof(double));
 
 
-    for (int i = 0; i < M.cols * M.rows; i++) {
+    for (unsigned long long i = 0; i < M.cols * M.rows; i++) {
         A.matrix[i] = M.matrix[i] - w.matrix[i / A.cols];
     }
 
@@ -54,16 +54,16 @@ Matrix calculateAtA(Matrix A) {
 
     C.matrix = malloc(A.cols * A.cols * sizeof(double));
 
-    for (int i = 0; i < A.cols * A.cols; i++) {
+    for (unsigned long long i = 0; i < A.cols * A.cols; i++) {
         C.matrix[i] = calculateAtAElement(A, i / A.cols, i % A.cols);
     }
 
     return C;
 }
 
-double calculateAtAElement(Matrix A, int x, int y) {
+double calculateAtAElement(Matrix A, unsigned long long x, unsigned long long y) {
     double sum = 0;
-    for (int i = 0; i < A.rows; i++) {
+    for (unsigned long long i = 0; i < A.rows; i++) {
         sum += A.matrix[i * A.cols + x] * A.matrix[i * A.cols + y];
     }
 
@@ -77,10 +77,10 @@ Matrix matrixMultiply(Matrix A, Matrix B) {
 
     C.matrix = malloc(C.rows * C.cols * sizeof(double));
 
-    for (int i = 0; i < C.rows; i++) {
-        for (int j = 0; j < C.cols; j++) {
+    for (unsigned long long i = 0; i < C.rows; i++) {
+        for (unsigned long long j = 0; j < C.cols; j++) {
             double sum = 0;
-            for (int k = 0; k < A.cols; k++) {
+            for (unsigned long long k = 0; k < A.cols; k++) {
                 sum += A.matrix[i * A.cols + k] * B.matrix[k * B.cols + j];
             }
             C.matrix[i * C.cols + j] = sum;
@@ -92,7 +92,7 @@ Matrix matrixMultiply(Matrix A, Matrix B) {
 
 double norm(Matrix x) {
     double sum = 0;
-    for (int i = 0; i < x.rows; ++i) {
+    for (unsigned long long i = 0; i < x.rows; ++i) {
         sum += pow(x.matrix[i], 2);
     }
     return sqrt(sum);
@@ -105,7 +105,7 @@ Matrix divideMatrixByScalar(Matrix A, double scalar) {
 
     R.matrix = malloc(R.cols*R.rows*sizeof(double));
 
-    for(int i=0; i< A.cols*A.rows; i++){
+    for(unsigned long long i=0; i< A.cols*A.rows; i++){
         R.matrix[i] = A.matrix[i] / scalar;
     }
 
@@ -119,7 +119,7 @@ Matrix matrixSubtract(Matrix A, Matrix B) {
 
     R.matrix = malloc(R.cols*R.rows*sizeof(double));
 
-    for(int i=0; i< A.cols*A.rows; i++){
+    for(unsigned long long i=0; i< A.cols*A.rows; i++){
         R.matrix[i] = A.matrix[i] - B.matrix[i];
     }
 
