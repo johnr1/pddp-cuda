@@ -2,9 +2,9 @@
 #define PDDP_MATRIXIO_H
 #include "matrix.h"
 
-Matrix buildArrayFromFile(char*);
+Matrix matrixFileValidator(char*);
+Matrix buildMatrixFromFile(char *);
 void printMatrix(Matrix);
 void printMatrixToFile(Matrix, char*);
-
 
 #endif //PDDP_MATRIXIO_H

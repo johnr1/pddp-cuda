@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    Matrix M = buildArrayFromFile(argv[1]);
+    Matrix M = buildMatrixFromFile(argv[1]);
     printMatrix(M);
 
     Matrix eigenvalue = pddpStep(M);

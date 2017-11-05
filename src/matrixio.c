@@ -23,34 +23,69 @@ void printMatrixToFile(Matrix A, char *filename) {
     }
 }
 
-Matrix buildArrayFromFile(char *filename) {
+Matrix matrixFileValidator(char *filename) {
     Matrix A;
+
     FILE *fp = fopen(filename, "r");
-    unsigned long long x = 1, y = 1;
+    unsigned long long x = 1, y = 1, totalColumns;
     char c;
 
     if (fp == NULL) {
-        printf("File not found, exiting.\n");
-        exit(-2);
+        fprintf(stderr,"File not found, exiting.\n");
+        exit(1);
     }
 
     while ((c = (char) fgetc(fp)) != EOF) {
-        if (c == '\t') y++;
-        else if (c == '\n') break;
+        if (c == '\t' || c == ' ') {
+            y++;
+            while ((c = (char) fgetc(fp)) != EOF) {
+                if (c != '\t' && c != ' ') break;
+            }
+
+        } else if (c == '\n') break;
     }
+
+    totalColumns = y;
+
+    y = 1;
     while ((c = (char) fgetc(fp)) != EOF) {
-        if (c == '\n')
+        if (c == '\t' || c == ' ') {
+            y++;
+            while ((c = (char) fgetc(fp)) != EOF) {
+                if (c != '\t' && c != ' ') break;
+            }
+
+        }
+        if (c == '\n') {
+            if (totalColumns != y) {
+                fprintf(stderr,"Malformed file.\n");
+                exit(2);
+            }
             x++;
+            y = 1;
+        }
     }
 
+
+    A.cols = totalColumns;
     A.rows = x;
-    A.cols = y;
-    A.matrix = malloc(y * x * sizeof(double));
+    A.matrix = malloc(x * totalColumns * sizeof(double));
 
-    rewind(fp);
+    fclose(fp);
 
-    char buffer[30];
-    unsigned long long i = 0, buf_i = 0;
+    return A;
+}
+
+
+Matrix buildMatrixFromFile(char *filename) {
+    FILE *fp = fopen(filename, "r");
+
+    Matrix A = matrixFileValidator(filename);
+
+    char c, buffer[30];
+    unsigned long long i = 0;
+    unsigned int buf_i = 0;
+
     while ((c = (char) fgetc(fp)) != EOF) {
         if (c == '\t' || c == '\n') {
             buffer[buf_i] = '\0';

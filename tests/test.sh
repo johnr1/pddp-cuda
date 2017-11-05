@@ -23,10 +23,10 @@ function test {
 }
 
 # Compile
-cd ../build
-cmake ../
+cd ../build &&
+cmake .. > /dev/null &&
+make > /dev/null &&
 cd ../tests
-make ../build > /dev/null &&
 if [[ $1 == "--all" ]]; then
     tests=$(find data -type f)
     for test in ${tests[@]}
