@@ -2,7 +2,6 @@
 bin/exe
 bin/result.mat
 build/CMakeFiles/
-build/Makefile
 build/*.*
 
 
