@@ -1,5 +1,6 @@
 .idea/
 bin/exe
 bin/result.mat
-
+!build/.gitkeep
+build/*
 
