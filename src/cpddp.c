@@ -1,8 +1,6 @@
-#include "../matrix.h"
-#include "cpddp.h"
-#include "../io/matrixio.h"
+#include "../include/matrix.h"
+#include "../include/cpddp.h"
 #include <stdlib.h>
-#include <stdio.h>
 
 
 Matrix pddpStep(Matrix M) {
@@ -10,8 +8,6 @@ Matrix pddpStep(Matrix M) {
     Matrix w = calculateAverageVector(M);
     Matrix A = calculateMean(M, w);
     Matrix C = calculateAtA(A);
-
-
     Matrix x = ones(C.rows,1);
     Matrix xNext;
     double varianceNorm;

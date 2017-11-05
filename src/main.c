@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "io/matrixio.h"
-#include "cpddp/cpddp.h"
+#include "../include/matrixio.h"
+#include "../include/cpddp.h"
 
 //TODO: change dimensions from int to llu
 int main(int argc, char *argv[])
@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 
     Matrix eigenvalue = pddpStep(M);
     printMatrix(eigenvalue);
-
+    printMatrixToFile(eigenvalue, "result.mat");
 
     free(M.matrix);
     free(eigenvalue.matrix);

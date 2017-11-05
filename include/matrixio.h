@@ -1,6 +1,6 @@
 #ifndef PDDP_MATRIXIO_H
 #define PDDP_MATRIXIO_H
-#include "../matrix.h"
+#include "matrix.h"
 
 Matrix buildArrayFromFile(char*);
 void printMatrix(Matrix);

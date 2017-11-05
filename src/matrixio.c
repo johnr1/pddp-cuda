@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "matrixio.h"
+#include "../include/matrixio.h"
 
 void printMatrix(Matrix A) {
     printf("Matrix [%dx%d] = \n", A.rows, A.cols);
     for (int i = 0; i < A.rows; i++) {
         for (int j = 0; j < A.cols; j++) {
-            printf("\t%0.3f", A.matrix[i * A.cols + j]);
+            printf("\t%f", A.matrix[i * A.cols + j]);
         }
         printf("\n");
     }

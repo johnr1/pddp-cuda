@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "matrix.h"
+#include "../include/matrix.h"
 #include <math.h>
 
 Matrix ones(int N, int M) {
