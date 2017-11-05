@@ -38,10 +38,7 @@ Matrix matrixFileValidator(char *filename) {
     while ((c = (char) fgetc(fp)) != EOF) {
         if (c == '\t' || c == ' ') {
             y++;
-            while ((c = (char) fgetc(fp)) != EOF) {
-                if (c != '\t' && c != ' ') break;
-            }
-
+            consumeWhitespace(fp);
         } else if (c == '\n') break;
     }
 
@@ -51,11 +48,9 @@ Matrix matrixFileValidator(char *filename) {
     while ((c = (char) fgetc(fp)) != EOF) {
         if (c == '\t' || c == ' ') {
             y++;
-            while ((c = (char) fgetc(fp)) != EOF) {
-                if (c != '\t' && c != ' ') break;
-            }
-
+            consumeWhitespace(fp);
         }
+
         if (c == '\n') {
             if (totalColumns != y) {
                 fprintf(stderr,"Malformed file.\n");
@@ -87,9 +82,10 @@ Matrix buildMatrixFromFile(char *filename) {
     unsigned int buf_i = 0;
 
     while ((c = (char) fgetc(fp)) != EOF) {
-        if (c == '\t' || c == '\n') {
+        if (c == '\t' || c == '\n' || c == ' ') {
             buffer[buf_i] = '\0';
             A.matrix[i] = atof(buffer);
+            consumeWhitespace(fp);
             buf_i = 0;
             i++;
         } else {
@@ -100,4 +96,15 @@ Matrix buildMatrixFromFile(char *filename) {
     fclose(fp);
 
     return A;
+}
+
+void consumeWhitespace(FILE *fp){
+    char c;
+    while ((c = (char) fgetc(fp)) != EOF) {
+        if (c != '\t' && c != ' ') {
+            ungetc(c, fp);
+            break;
+        }
+    }
+
 }

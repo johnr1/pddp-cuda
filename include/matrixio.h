@@ -6,5 +6,6 @@ Matrix matrixFileValidator(char*);
 Matrix buildMatrixFromFile(char *);
 void printMatrix(Matrix);
 void printMatrixToFile(Matrix, char*);
+void consumeWhitespace(FILE*);
 
 #endif //PDDP_MATRIXIO_H
