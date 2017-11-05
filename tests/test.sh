@@ -23,6 +23,9 @@ function test {
 }
 
 # Compile
+cd ../build
+cmake ../
+cd ../tests
 make ../build > /dev/null &&
 if [[ $1 == "--all" ]]; then
     tests=$(find data -type f)
