@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 
-
-#./exe data/large.txt
+#./exe large.txt
 if [[ $# == 0 ]]; then
     echo "Usage: $1 [filename|--all]"
     echo "  --all: run all tests"
@@ -11,27 +10,24 @@ fi
 
 function test {
     start_time=`date +%s`
-    ../bin/exe "data/$1" > /dev/null
+    ../bin/exe "/home/datasets/dataset$1.csv" "result.mat"  
     end_time=`date +%s`
-    diff result.mat results/$1 > /dev/null
+    diff result.mat "./results/o_result$1.csv"  
     if [[ $? -eq 0 ]]; then
         echo "[+] Test $1 OK! [`expr $end_time - $start_time`s]"
     else
         echo "[-] Test $1 FAILED! [`expr $end_time - $start_time`s]"
     fi
-
 }
 
 # Compile
-cd ../build &&
-cmake .. > /dev/null &&
-make > /dev/null &&
+cd ../bin
+make
 cd ../tests
 if [[ $1 == "--all" ]]; then
-    tests=$(find data -type f)
-    for test in ${tests[@]}
+    for i in `seq 1 3`;
     do
-        test $test
+        test $i;
     done
 else
     test $1;

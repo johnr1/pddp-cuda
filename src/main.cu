@@ -4,73 +4,28 @@
 #include "../include/pddp.h"
 #include "../include/cuda_helper.h"
 
-__global__ void reduce(Matrix in, Matrix out, int limit, double* varianceNorm) {
-    unsigned int tid = threadIdx.x;
-    unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
-
-    int size = blockIdx.x == gridDim.x-1 ? limit % S_BLOCK_SIZE : blockDim.x; //O ipologismos tou size itan lathos
-
-    if(i >= limit || tid >= size)
-        return;
-
-    out.matrix[i] = in.matrix[i] * in.matrix[i]; 
-    __syncthreads();
-    // do reduction in shared mem
-    for(unsigned int s=1; s < size; s *= 2) {
-        if (tid % (2*s) == 0 && tid+s < size) {
-            out.matrix[i] += out.matrix[i + s];
-        }
-        __syncthreads();
-    }
-    // write result for this block to global mem
-    if (tid == 0){
-        out.matrix[blockIdx.x] = sqrt(out.matrix[blockIdx.x * blockDim.x]); //edw itan episis lathos
-        *varianceNorm = out.matrix[blockIdx.x];
-    } 
-}
-
-
-void norm(Matrix x, Matrix *temp, Matrix *temp2, double* varianceNorm) {
-    int threads = S_BLOCK_SIZE;
-    int blockSize = x.rows / S_BLOCK_SIZE + 1;
-    reduce<<<blockSize, threads>>>(x, *temp, x.rows, varianceNorm); 
-    if(blockSize == 1){
-        return;
-    }
-
-    do{
-        int prevBlock = blockSize;
-        blockSize = blockSize/threads + 1;
-        reduce<<<blockSize, threads>>>(*temp, *temp2, prevBlock, varianceNorm); 
-        
-        // Temporary pinakas epidi iparxei race condition
-        // Distixws gia tin wra pass me pointer gia na allaksei kai
-        // stin main, etsi wste panta na vriskete ston pinaka temp
-        // (kai oxi ston temp2) to swsto reduction
-        //
-        // Diastaseis idies,  allakse mono matrix pointers,
-        double *juggler = (*temp).matrix;
-        (*temp).matrix = (*temp2).matrix;
-        (*temp2).matrix = juggler;
-    } while(blockSize > 1);
-    
-    cudaCheckError();
-}
-
-
 
 int main(int argc, char* argv[]) {
     const double e = 10e-6;
+    char *input_file, *output_file;
     if (argc < 2){
-        printf("Usage: %s filename\n", argv[0]);
+        printf("Usage: %s input_file [output_file]\n", argv[0]);
         exit(1);
+    } else if(argc == 2) {
+        input_file = argv[1];
+        output_file = "result.mat";
     }
+    else{
+        input_file = argv[1];
+        output_file = argv[2];
+    }
+    
     printf("Program started\n");
     fflush(stdout);
 
     // Host
     Matrix M;
-    M.matrix = file_read(argv[1], &M.rows, &M.cols);
+    M.matrix = file_read(input_file, &M.rows, &M.cols);
     printf("File read\n");
     fflush(stdout);
     Matrix x = matrixHostMalloc( M.cols, 1);
@@ -133,7 +88,7 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(x.matrix, d_x.matrix, d_x.rows*sizeof(double), cudaMemcpyDeviceToHost);
     cudaCheckError();
 
-    print_to_file(x, "result.mat");//printing to file in order to both check values and print debug info
+    print_to_file(x, output_file);//printing to file in order to both check values and print debug info
 
     cudaFree(d_M.matrix);
     cudaCheckError();

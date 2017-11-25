@@ -106,3 +106,52 @@ __global__ void divMatrixWithNorm(Matrix x, Matrix xNext) {
         xNext.matrix[i] = xNext.matrix[i] / x.matrix[0];
 }
 
+
+__global__ void reduce(Matrix in, Matrix out, int limit, double* varianceNorm) {
+    unsigned int tid = threadIdx.x;
+    unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
+
+    int size = blockIdx.x == gridDim.x-1 ? limit % S_BLOCK_SIZE : blockDim.x; //O ipologismos tou size itan lathos
+
+    if(i >= limit || tid >= size)
+        return;
+
+    out.matrix[i] = in.matrix[i] * in.matrix[i]; 
+    __syncthreads();
+    // do reduction in shared mem
+    for(unsigned int s=1; s < size; s *= 2) {
+        if (tid % (2*s) == 0 && tid+s < size) {
+            out.matrix[i] += out.matrix[i + s];
+        }
+        __syncthreads();
+    }
+    // write result for this block to global mem
+    if (tid == 0){
+        out.matrix[blockIdx.x] = sqrt(out.matrix[blockIdx.x * blockDim.x]); //edw itan episis lathos
+        *varianceNorm = out.matrix[blockIdx.x];
+    } 
+}
+
+
+void norm(Matrix x, Matrix *temp, Matrix *temp2, double* varianceNorm) {
+    int threads = S_BLOCK_SIZE;
+    int blockSize = x.rows / S_BLOCK_SIZE + 1;
+    reduce<<<blockSize, threads>>>(x, *temp, x.rows, varianceNorm); 
+    if(blockSize == 1){
+        return;
+    }
+
+    do{
+        int prevBlock = blockSize;
+        blockSize = blockSize/threads + 1;
+        reduce<<<blockSize, threads>>>(*temp, *temp2, prevBlock, varianceNorm); 
+        
+        double *juggler = (*temp).matrix;
+        (*temp).matrix = (*temp2).matrix;
+        (*temp2).matrix = juggler;
+    } while(blockSize > 1);
+    
+    cudaCheckError();
+}
+
+
