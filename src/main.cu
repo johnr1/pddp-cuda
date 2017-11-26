@@ -8,6 +8,7 @@
 int main(int argc, char* argv[]) {
     const double e = 10e-6;
     char *input_file, *output_file;
+
     if (argc < 2){
         printf("Usage: %s input_file [output_file]\n", argv[0]);
         exit(1);
@@ -21,13 +22,11 @@ int main(int argc, char* argv[]) {
     }
     
     printf("Program started\n");
-    fflush(stdout);
 
     // Host
     Matrix M;
     M.matrix = file_read(input_file, &M.rows, &M.cols);
     printf("File read\n");
-    fflush(stdout);
     Matrix x = matrixHostMalloc( M.cols, 1);
 
 
@@ -55,30 +54,26 @@ int main(int argc, char* argv[]) {
     cudaCheckError();
 
     // Allocate Mapped varianceNorm value
-    double *varianceNorm, *d_varianceNorm; //1 iteration
+    double *varianceNorm, *d_varianceNorm;
     cudaHostAlloc((void **)&varianceNorm, sizeof(double), cudaHostAllocMapped);
     cudaHostGetDevicePointer((void **)&d_varianceNorm, varianceNorm, 0);
 
-
     printf("Memory allocations finished\n");
-    fflush(stdout);
 
-    Matrix tempPointer;
-    *varianceNorm = 0;
     do {
         d_temp.rows = M.rows;
         subtractAndMultiply(d_M, d_w, d_x, d_mulTemp, d_mulTemp2, d_temp);
 
         subtractAndMultiplyTranspose<<<M.cols/S_BLOCK_SIZE + 1, S_BLOCK_SIZE>>>(d_M, d_w, d_temp, d_xNext);
 
+        d_temp.rows = M.cols;
         norm(d_xNext,&d_temp,&d_temp2,d_varianceNorm); //d_temp[0] contains norm value
         divMatrixWithNorm<<<(d_xNext.rows/S_BLOCK_SIZE)+1, S_BLOCK_SIZE>>>(d_temp, d_xNext); //Alters d_xNext
         
-        d_temp.rows = M.cols;
         subtractMatrix<<<(d_xNext.rows/S_BLOCK_SIZE)+1, S_BLOCK_SIZE>>>(d_xNext, d_x); //Alters d_x
         norm(d_x, &d_temp, &d_temp2, d_varianceNorm); //makes d_temp[0] the norm value
 
-        tempPointer = d_x; //Jungle pointers
+        Matrix tempPointer = d_x; //Jungle pointers
         d_x = d_xNext;
         d_xNext = tempPointer;
 
@@ -93,14 +88,15 @@ int main(int argc, char* argv[]) {
 
     print_to_file(x, output_file);//printing to file in order to both check values and print debug info
 
-    cudaFree(d_M.matrix);
-    cudaCheckError();
-    cudaFree(d_w.matrix);
-    cudaCheckError();
-    cudaFree(d_x.matrix);
-    cudaCheckError();
-    cudaFree(d_xNext.matrix);
-    cudaCheckError();
+    cudaFree(d_M.matrix); cudaCheckError();
+    cudaFree(d_w.matrix); cudaCheckError();
+    cudaFree(d_x.matrix); cudaCheckError();
+    cudaFree(d_xNext.matrix); cudaCheckError();
+    cudaFree(d_temp.matrix); cudaCheckError();
+    cudaFree(d_temp2.matrix); cudaCheckError();
+    cudaFree(d_mulTemp.matrix); cudaCheckError();
+    cudaFree(d_mulTemp2.matrix); cudaCheckError();
+
     free(M.matrix);
     free(x.matrix);
 

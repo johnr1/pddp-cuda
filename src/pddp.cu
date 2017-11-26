@@ -35,36 +35,34 @@ __global__ void calculateAverageVector(Matrix d_M, Matrix d_w){
  */
 
 // TODO Code needs major refactoring
-__global__ void mul_reduce(Matrix M, Matrix w, Matrix x, Matrix temp, int limit) {
+__global__ void mul_reduce(Matrix M, Matrix w, Matrix x, Matrix temp) {
     __shared__ double sh[GRID_Y][GRID_X];
     unsigned int tid = threadIdx.x;
     unsigned int yid = threadIdx.y;
     unsigned int row = blockIdx.y*blockDim.y + threadIdx.y;
     unsigned int col = blockIdx.x*blockDim.x + threadIdx.x;
 
+    int size = blockIdx.x == (gridDim.x-1) ? (M.cols % blockDim.x) : blockDim.x;
 
-    //Needs rethinking
-    int size = blockIdx.x == gridDim.x-1 ? limit % blockDim.x : blockDim.x;
-
-    if(col >= limit || tid >= size || row >= M.rows)
+    if(col >= M.cols || col >= x.rows || row >= M.rows || tid >= size)
         return;
 
     sh[yid][tid] = (M.matrix[row * M.cols + col] - w.matrix[row]) * x.matrix[col]; 
     __syncthreads();
-    // do reduction in shared mem
+
     for(unsigned int s=1; s < size; s *= 2) {
         if (tid % (2*s) == 0 && tid+s < size) {
             sh[yid][tid] += sh[yid][tid + s];
         }
         __syncthreads();
     }
-    // write result for this block to global mem
+
     if (tid == 0 ){
         temp.matrix[row * temp.cols + blockIdx.x] = sh[yid][tid];
     } 
 }
 
-__global__ void reduce(Matrix M, Matrix temp, int limit) {
+__global__ void reduce(Matrix M, Matrix temp) {
     __shared__ double sh[GRID_Y][GRID_X];
     unsigned int tid = threadIdx.x;
     unsigned int yid = threadIdx.y;
@@ -72,21 +70,21 @@ __global__ void reduce(Matrix M, Matrix temp, int limit) {
     unsigned int col = blockIdx.x*blockDim.x + threadIdx.x;
 
 
-    int size = blockIdx.x == gridDim.x-1 ? limit % blockDim.x : blockDim.x;
+    int size = blockIdx.x == gridDim.x-1 ? M.cols % blockDim.x : blockDim.x;
 
-    if(col >= limit || tid >= size || row >= M.rows)
+    if(col >= M.cols || row >= M.rows || tid >= size)
         return;
 
     sh[yid][tid] = M.matrix[row * M.cols + col];
     __syncthreads();
-    // do reduction in shared mem
+
     for(unsigned int s=1; s < size; s *= 2) {
         if (tid % (2*s) == 0 && tid+s < size) {
             sh[yid][tid] += sh[yid][tid + s];
         }
         __syncthreads();
     }
-    // write result for this block to global mem
+
     if (tid == 0 ){
         temp.matrix[row * temp.cols + blockIdx.x] = sh[yid][tid];
     } 
@@ -94,12 +92,12 @@ __global__ void reduce(Matrix M, Matrix temp, int limit) {
 
 
 void subtractAndMultiply(Matrix M, Matrix w, Matrix x, Matrix mulTemp, Matrix mulTemp2, Matrix temp) {
-    mulTemp.rows = M.rows;
     mulTemp.cols = M.cols/GRID_X + 1;
+    mulTemp2.cols = M.cols/GRID_X + 1;
 
-    dim3 dimGrid((M.cols)/GRID_X+1, (M.rows)/GRID_Y+1, 1);
+    dim3 dimGrid(M.cols/GRID_X+1, M.rows/GRID_Y+1, 1);
     dim3 dimBlock(GRID_X, GRID_Y, 1);
-    mul_reduce<<<dimGrid, dimBlock>>>(M, w, x, mulTemp, M.cols); 
+    mul_reduce<<<dimGrid, dimBlock>>>(M, w, x, mulTemp); 
 
     if(dimGrid.x == 1){
         int grid = temp.cols * temp.rows  / S_BLOCK_SIZE + 1;
@@ -110,10 +108,9 @@ void subtractAndMultiply(Matrix M, Matrix w, Matrix x, Matrix mulTemp, Matrix mu
     }
     
     do{
-        dim3 prevGrid = dimGrid;
         dimGrid.x = dimGrid.x/GRID_X + 1;
         mulTemp2.cols = mulTemp.cols/GRID_X + 1;
-        reduce<<<dimGrid, dimBlock>>>(mulTemp, mulTemp2, prevGrid.x); 
+        reduce<<<dimGrid, dimBlock>>>(mulTemp, mulTemp2); 
 
         Matrix juggler = mulTemp;
         mulTemp = mulTemp2;
@@ -135,8 +132,6 @@ __global__ void copyMatrix(Matrix A, Matrix B){
         B.matrix[i] = A.matrix[i];
 
 }
-
-
 
 
 // TODO Can be optimized

@@ -22,8 +22,6 @@
 
 double* file_read(char *filename,int  *numObjs,int  *numCoords);
 
-
-
 void print(Matrix);
 void print_to_file(Matrix, char*);
     
