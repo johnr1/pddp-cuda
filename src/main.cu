@@ -38,6 +38,8 @@ int main(int argc, char* argv[]) {
     Matrix d_x = matrixDeviceMalloc(M.cols, 1);
     Matrix d_temp = matrixDeviceMalloc(M.cols, 1);
     Matrix d_temp2 = matrixDeviceMalloc(M.cols,1);
+    Matrix d_mulTemp = matrixDeviceMalloc(M.rows, M.cols/GRID_X + 1);
+    Matrix d_mulTemp2 = matrixDeviceMalloc(M.rows, M.cols/GRID_X/GRID_X + 1);
     
 
     // Transfer M matrix to device
@@ -65,7 +67,8 @@ int main(int argc, char* argv[]) {
     *varianceNorm = 0;
     do {
         d_temp.rows = M.rows;
-        subtractAndMultiply<<<M.rows/S_BLOCK_SIZE + 1, S_BLOCK_SIZE>>>(d_M, d_w, d_x, d_temp);
+        subtractAndMultiply(d_M, d_w, d_x, d_mulTemp, d_mulTemp2, d_temp);
+
         subtractAndMultiplyTranspose<<<M.cols/S_BLOCK_SIZE + 1, S_BLOCK_SIZE>>>(d_M, d_w, d_temp, d_xNext);
 
         norm(d_xNext,&d_temp,&d_temp2,d_varianceNorm); //d_temp[0] contains norm value

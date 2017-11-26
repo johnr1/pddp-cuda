@@ -15,4 +15,7 @@
 #define BLOCK_SIZE 32
 #define S_BLOCK_SIZE 512
 
+#define GRID_Y 2
+#define GRID_X 512
+
 #endif //CU_HELPER_H
