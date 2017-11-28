@@ -16,8 +16,8 @@
 #define S_BLOCK_SIZE 512
 
 
-#define GRID_Y 2   //IMPORTANT THERE IS A BUG here
-#define GRID_X 512 //Kai genika otan allazoume times
+#define GRID_Y 4
+#define GRID_X 256  //GRID_X<256 perhaps hits memory limits
 
 
 #endif //CU_HELPER_H

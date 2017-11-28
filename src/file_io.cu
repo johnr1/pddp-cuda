@@ -138,9 +138,9 @@ void print(Matrix A) {
 void print_to_file(Matrix A, char *filename) {
     FILE *fp = fopen(filename, "w");
     for (int i = 0; i < A.rows; i++) {
-        fprintf(fp, "%.4e", A.matrix[i * A.cols]);
+        fprintf(fp, "%.8f", A.matrix[i * A.cols]);
         for (int j = 1; j < A.cols; j++) {
-            fprintf(fp, ",%.4e", A.matrix[i * A.cols + j]);
+            fprintf(fp, ",%.8f", A.matrix[i * A.cols + j]);
         }
         fprintf(fp, "\n");
     }
