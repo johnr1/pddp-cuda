@@ -16,7 +16,7 @@ def clean():
 
 def execute(test):
     print "[i] Executing test " + str(test)
-    shell_exec("cd ../bin && ./exe /home/datasets/dataset" + str(test) + ".csv result" + str(test) + ".csv", shell=True)
+    shell_exec("cd ../bin && nvprof ./exe /home/datasets/dataset" + str(test) + ".csv result" + str(test) + ".csv", shell=True)
 
 def read_files(test):
     global expected_results
