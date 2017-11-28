@@ -12,12 +12,10 @@
 }
 
 
-#define BLOCK_SIZE 32
 #define S_BLOCK_SIZE 512
 
-
-#define GRID_Y 4
-#define GRID_X 256  //GRID_X<256 perhaps hits memory limits
+#define GRID_Y 2
+#define GRID_X 512  //GRID_X<256 perhaps hits memory limits
 
 
 #endif //CU_HELPER_H

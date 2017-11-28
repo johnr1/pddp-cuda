@@ -21,12 +21,11 @@ int main(int argc, char* argv[]) {
         output_file = argv[2];
     }
     
-    printf("Program started\n");
+    printf("Reading input file...\n");
 
     // Host
     Matrix M;
     M.matrix = file_read(input_file, &M.rows, &M.cols);
-    printf("File read\n");
     Matrix x = matrixHostMalloc( M.cols, 1);
 
 
@@ -37,8 +36,6 @@ int main(int argc, char* argv[]) {
     Matrix d_x = matrixDeviceMalloc(M.cols, 1);
     Matrix d_temp = matrixDeviceMalloc(M.cols, 1);
     Matrix d_temp2 = matrixDeviceMalloc(M.cols,1);
-    Matrix d_mulTemp = matrixDeviceMalloc(M.rows, M.cols/GRID_X + 1);
-    Matrix d_mulTemp2 = matrixDeviceMalloc(M.rows, M.cols/GRID_X/GRID_X + 1);
     
 
     // Transfer M matrix to device
@@ -60,18 +57,21 @@ int main(int argc, char* argv[]) {
 
     printf("Memory allocations finished\n");
 
+    dim3 dimGrid(M.cols/GRID_X+1, M.rows/GRID_Y+1, 1);
+    dim3 dimBlock(GRID_X, GRID_Y, 1);
     do {
         d_temp.rows = M.rows;
-        subtractAndMultiply(d_M, d_w, d_x, d_mulTemp, d_mulTemp2, d_temp);
+        initialize<<<d_temp.rows/S_BLOCK_SIZE + 1, S_BLOCK_SIZE>>>(d_temp,0);             //Populated d_x
+        subtractAndMultiply<<<dimGrid, dimBlock>>>(d_M, d_w, d_x, d_temp);
 
         subtractAndMultiplyTranspose<<<M.cols/S_BLOCK_SIZE + 1, S_BLOCK_SIZE>>>(d_M, d_w, d_temp, d_xNext);
 
         d_temp.rows = M.cols;
-        norm(d_xNext,&d_temp,&d_temp2,d_varianceNorm); //d_temp[0] contains norm value
+        calculateNorm(d_xNext,&d_temp,&d_temp2,d_varianceNorm); //d_temp[0] contains norm value
         divMatrixWithNorm<<<(d_xNext.rows/S_BLOCK_SIZE)+1, S_BLOCK_SIZE>>>(d_temp, d_xNext); //Alters d_xNext
         
         subtractMatrix<<<(d_xNext.rows/S_BLOCK_SIZE)+1, S_BLOCK_SIZE>>>(d_xNext, d_x); //Alters d_x
-        norm(d_x, &d_temp, &d_temp2, d_varianceNorm); //makes d_temp[0] the norm value
+        calculateNorm(d_x, &d_temp, &d_temp2, d_varianceNorm); //makes d_temp[0] the norm value
 
         Matrix tempPointer = d_x; //Jungle pointers
         d_x = d_xNext;
@@ -80,9 +80,6 @@ int main(int argc, char* argv[]) {
         cudaDeviceSynchronize();
     } while(*varianceNorm > e);
 
-
-    cudaDeviceSynchronize();
-    cudaCheckError();
     cudaMemcpy(x.matrix, d_x.matrix, d_x.rows*sizeof(double), cudaMemcpyDeviceToHost);
     cudaCheckError();
 
@@ -94,8 +91,7 @@ int main(int argc, char* argv[]) {
     cudaFree(d_xNext.matrix); cudaCheckError();
     cudaFree(d_temp.matrix); cudaCheckError();
     cudaFree(d_temp2.matrix); cudaCheckError();
-    cudaFree(d_mulTemp.matrix); cudaCheckError();
-    cudaFree(d_mulTemp2.matrix); cudaCheckError();
+    cudaFreeHost(varianceNorm); cudaCheckError();
 
     free(M.matrix);
     free(x.matrix);
