@@ -36,7 +36,8 @@ int main(int argc, char* argv[]) {
     Matrix d_x = matrixDeviceMalloc(M.cols, 1);
     Matrix d_temp = matrixDeviceMalloc(M.cols, 1);
     Matrix d_temp2 = matrixDeviceMalloc(M.cols,1);
-    
+    dim3 dimGrid(M.cols/GRID_X+1, M.rows/GRID_Y+1, 1);
+    dim3 dimBlock(GRID_X, GRID_Y, 1);
 
     // Transfer M matrix to device
     cudaMemcpy(d_M.matrix, M.matrix, M.cols*M.rows*sizeof(double), cudaMemcpyHostToDevice);
@@ -44,7 +45,9 @@ int main(int argc, char* argv[]) {
     
 
     // Kernels which calculates avg weight vector and initializes d_x
-    calculateAverageVector<<<M.rows/S_BLOCK_SIZE + 1, S_BLOCK_SIZE>>>(d_M,d_w); //Populates d_w
+    initialize<<<d_w.rows/S_BLOCK_SIZE + 1, S_BLOCK_SIZE>>>(d_w,0);             //Populated d_x
+
+    calculateAverageVector<<<dimGrid, dimBlock>>>(d_M,d_w); //Populates d_w
     cudaCheckError();
 
     initialize<<<d_x.rows/S_BLOCK_SIZE + 1, S_BLOCK_SIZE>>>(d_x,1);             //Populated d_x
@@ -57,8 +60,6 @@ int main(int argc, char* argv[]) {
 
     printf("Memory allocations finished\n");
 
-    dim3 dimGrid(M.cols/GRID_X+1, M.rows/GRID_Y+1, 1);
-    dim3 dimBlock(GRID_X, GRID_Y, 1);
     do {
         d_temp.rows = M.rows;
         initialize<<<d_temp.rows/S_BLOCK_SIZE + 1, S_BLOCK_SIZE>>>(d_temp,0);             //Populated d_x

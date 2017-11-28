@@ -10,16 +10,34 @@
  * w <- mean(M')'
  * -----------------
  */
-__global__ void calculateAverageVector(Matrix d_M, Matrix d_w){
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void calculateAverageVector(Matrix M, Matrix w) {
+    __shared__ double sh[GRID_Y][GRID_X];
+    unsigned int tid = threadIdx.x;
+    unsigned int yid = threadIdx.y;
+    unsigned int row = blockIdx.y*blockDim.y + threadIdx.y;
+    unsigned int col = blockIdx.x*blockDim.x + threadIdx.x;
+
+    if(row >= M.rows)
+        return;
+
+    if(col < M.cols)
+        sh[yid][tid] = M.matrix[row * M.cols + col];
+    else
+        sh[yid][tid] = 0;
     
-    if(i < d_M.rows) {
-        double sum = 0;
-        for (int j = 0; j < d_M.cols; j++) {
-            sum += d_M.matrix[i * d_M.cols + j];
+    __syncthreads();
+
+    for (unsigned int s=blockDim.x/2; s>0; s>>=1) {
+        if (tid < s) {
+            sh[yid][tid] += sh[yid][tid + s];
         }
-        d_w.matrix[i] = sum / d_M.cols;
+        __syncthreads();
     }
+
+    if (tid == 0 ){
+        double value = sh[yid][tid] / M.cols;
+        atomicAdd(&w.matrix[row], value);
+    } 
 }
 
 
@@ -150,7 +168,7 @@ __global__ void divMatrixWithNorm(Matrix x, Matrix xNext) {
 }
 
 __global__ void initialize(Matrix m, double value){
-    int i = blockIdx.x * blockDim.x + threadIdx.x;    
+    int i = blockIdx.x * blockDim.x + threadIdx.x;  
     if(i < m.rows*m.cols){
         m.matrix[i] = value;
     }
