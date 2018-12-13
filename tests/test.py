@@ -17,6 +17,7 @@ def clean(implementation):
     shell_exec("cd ../" + implementation + "/bin && rm result?.csv", shell=True)
     shell_exec("cd ../" + implementation + "/build && rm *.o", shell=True)
 
+# Datasets too large to add to the git repository
 def execute(implementation, test):
     print "[i] Executing test " + str(test)
     shell_exec("cd ../" + implementation + "/bin && ./pddp /home/datasets/dataset" + str(test) + ".csv result" + str(test) + ".csv", shell=True)

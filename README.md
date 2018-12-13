@@ -1,65 +1,68 @@
-## Σύνοψη
+# Principal Direction Divisive Partitioning (PDDP) 
 
-Ο βασικός κατάλογος περιέχει τα παραδοτέα της εργασίας μας για το μάθημα **Λογισμικό και προγραμματισμός συστημάτων υψηλης επίδοσης**.
+## Description 
 
-Το παρόν README εξυπηρετεί στο να περιγράψει εν συντομία την δομή των καταλόγων και τις παραδοτέες υλοποιήσείς του αλγορίθμου PDDP, ώστε να επιτραπεί η άμεση εκτέλεση τους.
+PDDP is clustering algorithm, which takes as input a set of vectors in n x m matrix format, usually m >> n, where each row of it, is a vector. Using the input matrix, it calculates the 'principal component', an eigenvector, as output. 
 
-Η ανάλυση του αλγορίθμου, η επεξήγηση της παραλληλοποίησης της κάθε υλοποίησης, οι χρόνοι και μετρήσεις εκτέλεσης και ο σχολιασμός τους περιέχονται στην αναφορά.
+The first step of the pddp algorithm is to calculate the average vector of all elements of matrix M as follows:
+
+> w = (1/m) * ( d<sub>1</sub> + d<sub>2</sub> + ... + d<sub>m</sub> )
+
+The next step is to calculate the matrix C:
+
+> C = (M − w * e<sup>T</sup>)<sup>T</sup> * (M − w * e<sup>T</sup>) = A<sup>T</sup> * A,  
+> where A = (M − w * e<sup>T</sup>)
+> and e = [111 ... 1]<sup>T</sup>
+ 
+In a nutshell, from every column of the input matrix M, the average of the input (matrix A) should be subtracted and the result will be multiplied with the transpose of A. 
+
+After that, the principal component (the eigenvector) approximation is calculated iteratively. Starting with a vector x<sub>0</sub> = [111...1], the final result is approached as follows:
+
+> x<sub>k+1</sub> = (C * x<sub>k</sub>) / || C * x<sub>k</sub> ||
+
+The algorithm converges, when a new x<sub>k+1</sub> vector has a small difference from the previous x<sub>k</sub>. This eigenvector is used to separate the input data in two subsets A and B as follows. The eigenvector is has positive and negative values. Each value of it corresponds to a vector in the input matrix. The first value corresponds to the first vector the second to the second etc. Subsets A and B are comprised of the vectors matched with a positive and negative values respectively.
+
+Further clustering can be achieved by giving one of these subsets as input to the algorithm.
+
+More information can be found [here](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.646.4267&rep=rep1&type=pdf)
+
+## Implementations
+
+Three implementations of the pddp algorithm are provided in total.
+
+| Version                               | Directory         | Description                                         		    |
+| ------------------------------------- | ----------------- |-------------------------------------------------------------- |
+| Serial                              	| serial/           | A serial implementation in C.                   	  		    |
+| Naive implementation in CUDA          | naive/            | Naive implementation in CUDA using exclusively global memory. |
+| Optimized implementation in CUDA 		| optimized/        | Optimal implementation in CUDA using shared memory.           |
 
 
-## Υλοποιήσεις
+## Compile Instructions
+Change directory to the desired implementation, and run:
+> make 
 
-Συνολικά παρδίδονται τρεις υλοποιήσεις του αλγορίθμου, οπου η καθε μια αναλύεται εκτενώς στο παραδοτέο report που βρίσκεται στον κύριο φάκελο.
-
-| Έκδοση                                | Κατάλογος         | Περιγραφή                                           |
-| ------------------------------------- | ----------------- |---------------------------------------------------- |
-| Σειριακή                              | serial/           | Σειριακή υλοποίηση του αλγορίθμου                   |
-| Απλή παράλληλοποίηση CUDA             | naive/            | Αρχική υλοποίηση σε CUDA με χρήση global μνήμης     |
-| Βελτιστοποιημένη παραλληλοποίηση CUDA | shared/           | Χρήση shared μνήμης για βελτίωση απόδοσης           |
+The executable will be placed in the 'bin/' directory and the object files in the 'build/'.
 
 
-## Δομή καταλόγων κάθε υλοποίησης
-
-Κάθε κατάλογος μιας υλοποίησης έχει την εξής δομή:
-
-| Κατάλογος/Αρχεία | Περιγραφή                          |
-| ---------------- | ---------------------------------- |
-| bin/             | Τελικό εκτελέσιμο (./pddp)         |
-| build/           | Object files (*.o)                 |
-| include/         | Header Files (*.h)                 |
-| src/             | Πηγαίος Κώδικας (\*.cu ή \*.c)     |
-| Makefile         | Builds the specific implementation |
-
-To Makefile αναλαμβάνει να μεταφράσει το προγραμμα με τα κατάλληλα compiler flags. Τα παραγόμενα object files τοποθετούνται στον φάκελο 'build' ενώ το εκτελέσιμο στον φάκελο 'bin'.
-
-## Εκτέλεση
-
-Σε όλες τις υλοποιήσεις το παραγόμενο ονομάζεται 'pddp' και καλείται ως εξής:
+## Run
+All the implementations produce an executable called 'pddp' in the 'bin/' directory. It is executed as follows:
 
 > ./pddp input_file [output_file]
 
-* 'input_file' ένα αρχείο σε μορφή .csv όπως τα παρεχόμενα datasets
-* 'output_file' το αρχείο που αποθηκεύεται τελικό ιδιοδιάνυσμα με το πέρας του αλγορίθμου. Αν δε δωθεί κάποιο όνομα τότε χρησιμοποιείται to 'result.csv'
+* 'input_file' a file in .csv format, each column represents a vector
+* 'output_file' it's the final eigenvector in .csv format, default filename is 'output.csv'
 
 
 ## Tests
+Test datasets are not uploaded at the moment due to their large size. The test.py script can be used by providing your own datasets and results.
 
-Για επιβεβαίωση των σωστών αποτελεσμάτων, έχουμε γράψει ορισμένα αυτοματοποιημένα tests όπου εκτελούν τον αλγόριθμο pddp χρησημοποιώντας μια απο τις υλοποιήσεις και επειτα συγκρίνουν το αποτέλεσμα του αλγορίθμου με το αναμενόμενο.
-
-Ο φάκελος tests περιέχει το προγραμμα οπου εκτελεί τα tests, και τα αναμενόμενα αποτελέσματα για κάθε dataset. Συγκεκριμένα δίνοντας ως είσοδο τον αριθμό του dataset, και την υλοποίηση, το πρόγραμμα θα ψάξει στο /home/datasets/ για το dataset με τον αριθμό που δόθηκε και θα εκτελέσει την συγκεκριμένη εκδοχή.
-
-#### Παραδείγματα
-* Εκτέλεση και έλεγχος της 'serial' υλοποίησης με το dataset1
+### Examples
+* Execute and test the 'serial' implementation with the 1st dataset
 > ./test.py -t1 serial
 
-* Εκτέλεση και έλεγχος της 'shared' υλοποίησης με όλα τα datasets και καθαρισμός των παραγόμενων αποτελεσμάτων και object files.
+* Execute and test the 'shared' implementation with all the datasets and clean afterwards (object files and results).
 > ./test.py --all --clean shared
 
-* Εκτέλεση και έλεγχος της 'shared' υλοποίησης με το dataset3 και έλεγχος ορθότητας μέχρι το 6ο δεκαδικό ψηφίο.
+* Execute and test the 'shared' implementation with the 3rd dataset up to the 6th decimal place.
 > ./test.py -d6 -t3 shared
 
-
-## Authors
-
-* Ιωάννης Ορέστης Ρίζος - ΑΜ: 6190
-* Ραφαήλ Γλυκύς - ΑΜ: 6257
